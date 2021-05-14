@@ -1,29 +1,56 @@
 #include "my_lab.hpp"
 #include <iostream>
 #include <string>
-#include <cstring>
-#define DEFEAT 5
+
+
+void getDefine(const std::string& str, std::string& keyword, std::string& keyvalue,bool& flag) {
+    if (str.length() < 7)
+        return;
+    if (str[0] == '#' && str[1] == 'd' && str[2] == 'e' && str[3] == 'f' && str[4] == 'i' && str[5] == 'n' && str[6] == 'e') {
+        flag = true;
+        int k = 8;
+        int temp = 0;
+        while (str[k] != ' ')
+            k++;
+        keyword = str.substr(8, k-8);
+        const int kk = k;
+        k++;
+        while (str[k] != '\0' && str[k] != ' ' && str[k] != '\n')
+            k++;
+        keyvalue = str.substr(kk, k+1 - kk);
+
+    }
+}
+string::string(const char* mes, const int length) {
+    len_ = length;
+    str_ = new char[length];
+    for (int i = 0; i < len_; i++)
+        str_[i] = mes[i];
+}
+string::~string() {
+    delete[] str_;
+}
 char *replace( char *str, const char *f, const char *t ) {
-   char *tmpPtr = strstr( str, f );
+   char *tmp_ptr = strstr( str, f );
    
-   if ( tmpPtr != 0 && strlen( f ) >= strlen( t )) {
-      std::size_t sizeDiff = strlen( f ) - strlen( t );
+   if ( tmp_ptr != nullptr && strlen( f ) >= strlen( t )) {
+	   const std::size_t size_diff = strlen( f ) - strlen( t );
       
-      strncpy( tmpPtr, t, strlen( t ));
+      strncpy( tmp_ptr, t, strlen( t ));
       
-      if ( sizeDiff > 0 )
-         for ( tmpPtr += strlen( t ); *tmpPtr != '\0'; tmpPtr++ )
-            *tmpPtr = *( tmpPtr + sizeDiff );
+      if ( size_diff > 0 )
+         for ( tmp_ptr += strlen( t ); *tmp_ptr != '\0'; tmp_ptr++ )
+            *tmp_ptr = *( tmp_ptr + size_diff );
       
    } else
-      return 0;
+      return nullptr;
    
    return str;
 }
-void deleteComments(std::ifstream& file,std::ofstream& fileo){
-    bool inComment = false;
-    bool inQuote = false;
-    char* buff = new char[800];
+void delete_comments(std::ifstream& file,std::ofstream& fileo){
+    bool in_comment = false;
+    bool in_quote = false;
+    auto buff = new char[800];
     int i = 0;
     int j = 0;
     while(true){
@@ -31,28 +58,32 @@ void deleteComments(std::ifstream& file,std::ofstream& fileo){
         if(j == 1000)
             break;
         file.getline(buff,800);
-        if(file.eof())
+        if (file.eof()) {
+            while (buff[i] != '\0' && buff[i] != '\n') {
+                fileo << buff[i];
+                i++;
+            }
             break;
+        }
         
         while(buff[i] != '\0' && buff[i] != '\n'){
-            if(buff[i] == '\"' && inQuote && !inComment){
-                inQuote = false;
+            if(buff[i] == '\"' && in_quote && !in_comment){
+                in_quote = false;
              }
-            if ((buff[i] == '\"')&& !inComment){
-                inQuote = true;    
+            if ((buff[i] == '\"')&& !in_comment){
+                in_quote = true;    
             } 
-            if(buff[i] == '/' && buff[i+1] == '/' && !inComment && !inQuote){
+            if(buff[i] == '/' && buff[i+1] == '/' && !in_comment && !in_quote){
                 break;
             }
-            if(buff[i] == '/' && buff[i+1] == '*' && !inQuote)
-                inComment = true;
-            if(!inComment){
+            if(buff[i] == '/' && buff[i+1] == '*' && !in_quote)
+                in_comment = true;
+            if(!in_comment){
                 fileo << buff[i];
-                std::cout <<buff[i];
             }
-            if(buff[i] == '*' && buff[i+1] == '/' && inComment && !inQuote){
+            if(buff[i] == '*' && buff[i+1] == '/' && in_comment && !in_quote){
                 i++;
-                inComment = false;
+                in_comment = false;
             }
            
             i++;
@@ -60,124 +91,40 @@ void deleteComments(std::ifstream& file,std::ofstream& fileo){
         delete[] (buff);
         buff = new char[800];
         i = 0;
-        if(!inComment)
+        if(!in_comment)
             fileo << "\n";
     }
-    fileo << "}\0";
 }
 
-void define(std::ifstream& file){
-    bool inComment = false;
-    bool inQuote = false;
-    char* buff = new char[801];
-    int i = 0;
-    char* keyword;
-    char* keyvalue;
-    while(true){
-        file.getline(buff,800);
-        if(file.eof())
-            break;
-        if(buff[0] == '#' && buff[1] == 'd' && buff[2] == 'e' && buff[3] == 'f' && buff[4] == 'i' && buff[5] == 'n' && buff[6] == 'e' ){
-                int k = 8;
-                int temp = 0;
-                keyword = new char[800];
-                keyvalue = new char[800];
-                while (buff[k] != ' ')
-                {
-                    keyword[temp] = buff[k];
-                    temp++;
-                    k++;
-                }
-                std::cout << strlen(keyword);
-                temp = 0;
-                k++;
-                while (buff[k] != '\0' || buff[k] != ' ')
-                {
-                    keyvalue[temp++] = buff[k++];
-                }
-                k++;
-                std::cout << "f";
 
-            }
-        while(buff[i] != '\0'){
-            
-            if(buff[i] == '\"' && inQuote && !inComment){
-                inQuote = false;
-            }
-            if ((buff[i] == '\"')&& !inComment){
-                inQuote = true;
-            } 
-            if(buff[i] == '/' && buff[i+1] == '/' && !inComment && !inQuote){
-                break;
-            }
-            if(buff[i] == '/' && buff[i+1] == '*' && !inQuote)
-                inComment = true;
-            if(buff[i] == '*' && buff[i+1] == '/' && inComment && !inQuote){
-                i++;
-                inComment = false;
-            }
-            if(!strlen(keyword)){
-                char* finded = strstr(buff,keyword);
-                //if((*(finded-1)<'A') || ((*(finded-1) > 'Z') && (*(finded-1) < 'a')) || (*(finded-1) > 'z'))
-                    
-                   // if((*(finded+strlen(keyword))<'A') || ((*(finded+strlen(keyword)) > 'Z') && (*(finded+strlen(keyword)) < 'a')) || (*(finded+strlen(keyword)) > 'z'))
-                      // replace(buff,keyword,keyvalue);
-                /*for(int i = 0;i < strlen(buff);i++)
-                    std::cout << buff[i];*/
-                    break;
-            }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-
-            i++;
-        }
-        delete[] (buff);
-        buff = new char[801];
-        i = 0;
-    }
-}
 void define1(std::ifstream& file){
-    char* buff = new char[801];
+    std::string buff;
     int i = 0;
-    char* keyword ;
-    char* keyvalue ;
+    bool new_define = false;
     while (true)
     {
-        file.getline(buff,800);
-        if(file.eof())
-           break;
-        if(buff[0] == '#' && buff[1] == 'd' && buff[2] == 'e' && buff[3] == 'f' && buff[4] == 'i' && buff[5] == 'n' && buff[6] == 'e' ){
-                int k = 8;
-                int temp = 0;
-                keyword = new char[800];
-                keyvalue = new char[800];
-                while (buff[k] != ' ' )
-                {
-                    keyword[temp] = buff[k];
-                    temp++;
-                    k++;
-                }
-                temp = 0;
-                k++;
-                while (buff[k] != '\0' && buff[k] != ' ' && buff[k] != '\n')
-                {
-                    keyvalue[temp++] = buff[k++];
-                }
-                k++;
+	    std::string keyvalue;
+	    std::string keyword;
+	    getline(file,buff);
+        if (file.eof()) {
+            std::cout << buff.c_str();
+            break;
         }
-        while(buff[i] != '\0' || buff[i] != '\n'){
-            
-                char* finded = strstr(buff,keyword);
-                if( finded != nullptr && finded[0] != buff[0])
-                //    if((*(finded-1)<'A') || ((*(finded-1) > 'Z') && (*(finded-1) < 'a')) || (*(finded-1) > 'z'))
-                //      if((*(finded+strlen(keyword))<'A') || ((*(finded+strlen(keyword)) > 'Z') && (*(finded+strlen(keyword)) < 'a')) || (*(finded+strlen(keyword)) > 'z'))
-                    replace(buff,keyword,keyvalue);
-                for(int i = 0;i < strlen(buff);i++)
-                    std::cout << buff[i];
-                std::cout << "\n";
-                break;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+        getDefine(buff,keyword,keyvalue,new_define);
+        while(buff[i] != '\0' && buff[i] != '\n'){
+            if (!new_define && !keyword.empty()) {
+	            const int keyf = buff.find(keyword);
+                if (keyf != std::string::npos)
+                    if (buff[keyf - 1] < 'A' || buff[keyf - 1] > 'Z' && buff[keyf - 1] < 'a' || buff[keyf - 1] > 'z')
+                        if (buff[keyf + keyword.length()] < 'A' || buff[keyf + keyword.length()] > 'Z' && buff[keyf + keyword.length()] < 'a' || buff[keyf + keyword.length()] > 'z')
+                           buff.replace(keyf, keyword.length(), keyvalue);
+            }
             i++;
         }
-        delete[] (buff);
-        buff = new char[801];
+        new_define = false;
+        std::cout << buff;
+        std::cout << "\n";
         i = 0;
     }
 }
+
